@@ -64,119 +64,16 @@ export const constantRoutes: RouteRecordRaw[] = [
     ]
   },
   {
-    path: "/demo",
+    path: "/logs",
     component: Layouts,
-    redirect: "/demo/unocss",
-    name: "Demo",
-    meta: {
-      title: "示例集合",
-      elIcon: "DataBoard"
-    },
     children: [
       {
-        path: "unocss",
-        component: () => import("@/pages/demo/unocss/index.vue"),
-        name: "UnoCSS",
+        path: "",
+        component: () => import("@/pages/logs/index.vue"),
+        name: "Logs",
         meta: {
-          title: "UnoCSS"
-        }
-      },
-      {
-        path: "element-plus",
-        component: () => import("@/pages/demo/element-plus/index.vue"),
-        name: "ElementPlus",
-        meta: {
-          title: "Element Plus",
-          keepAlive: true
-        }
-      },
-      {
-        path: "vxe-table",
-        component: () => import("@/pages/demo/vxe-table/index.vue"),
-        name: "VxeTable",
-        meta: {
-          title: "Vxe Table",
-          keepAlive: true
-        }
-      },
-      {
-        path: "level2",
-        component: () => import("@/pages/demo/level2/index.vue"),
-        redirect: "/demo/level2/level3",
-        name: "Level2",
-        meta: {
-          title: "二级路由",
-          alwaysShow: true
-        },
-        children: [
-          {
-            path: "level3",
-            component: () => import("@/pages/demo/level2/level3/index.vue"),
-            name: "Level3",
-            meta: {
-              title: "三级路由",
-              keepAlive: true
-            }
-          }
-        ]
-      },
-      {
-        path: "composable-demo",
-        redirect: "/demo/composable-demo/use-fetch-select",
-        name: "ComposableDemo",
-        meta: {
-          title: "组合式函数"
-        },
-        children: [
-          {
-            path: "use-fetch-select",
-            component: () => import("@/pages/demo/composable-demo/use-fetch-select.vue"),
-            name: "UseFetchSelect",
-            meta: {
-              title: "useFetchSelect"
-            }
-          },
-          {
-            path: "use-fullscreen-loading",
-            component: () => import("@/pages/demo/composable-demo/use-fullscreen-loading.vue"),
-            name: "UseFullscreenLoading",
-            meta: {
-              title: "useFullscreenLoading"
-            }
-          },
-          {
-            path: "use-watermark",
-            component: () => import("@/pages/demo/composable-demo/use-watermark.vue"),
-            name: "UseWatermark",
-            meta: {
-              title: "useWatermark"
-            }
-          }
-        ]
-      }
-    ]
-  },
-  {
-    path: "/link",
-    meta: {
-      title: "文档链接",
-      elIcon: "Link"
-    },
-    children: [
-      {
-        path: "https://juejin.cn/post/7445151895121543209",
-        component: () => {},
-        name: "Link1",
-        meta: {
-          title: "中文文档"
-        }
-      },
-      {
-        path: "https://juejin.cn/column/7207659644487139387",
-        component: () => {},
-        name: "Link2",
-        meta: {
-          title: "新手教程"
+          title: "操作记录",
+          elIcon: "Document"
         }
       }
     ]
@@ -190,36 +87,39 @@ export const constantRoutes: RouteRecordRaw[] = [
  */
 export const dynamicRoutes: RouteRecordRaw[] = [
   {
-    path: "/permission",
+    path: "/user",
     component: Layouts,
-    redirect: "/permission/page-level",
-    name: "Permission",
     meta: {
-      title: "权限演示",
-      elIcon: "Lock",
-      // 可以在根路由中设置角色
-      roles: ["admin", "editor"],
-      alwaysShow: true
+      roles: ["admin", "superadmin"]
     },
     children: [
       {
-        path: "page-level",
-        component: () => import("@/pages/demo/permission/page-level.vue"),
-        name: "PermissionPageLevel",
+        path: "",
+        component: () => import("@/pages/user/index.vue"),
+        name: "UserManage",
         meta: {
-          title: "页面级",
-          // 或者在子路由中设置角色
-          roles: ["admin"]
+          title: "用户管理",
+          elIcon: "User",
+          roles: ["admin", "superadmin"]
         }
-      },
+      }
+    ]
+  },
+  {
+    path: "/sms",
+    component: Layouts,
+    meta: {
+      roles: ["admin", "superadmin"]
+    },
+    children: [
       {
-        path: "button-level",
-        component: () => import("@/pages/demo/permission/button-level.vue"),
-        name: "PermissionButtonLevel",
+        path: "",
+        component: () => import("@/pages/sms/index.vue"),
+        name: "SmsConfig",
         meta: {
-          title: "按钮级",
-          // 如果未设置角色，则表示：该页面不需要权限，但会继承根路由的角色
-          roles: undefined
+          title: "短信配置",
+          elIcon: "Message",
+          roles: ["admin", "superadmin"]
         }
       }
     ]

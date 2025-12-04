@@ -1,5 +1,6 @@
-import { getCurrentUserApi } from "@@/apis/users"
+import { getProfileApi } from "@@/apis/auth"
 import { setToken as _setToken, getToken, removeToken } from "@@/utils/cache/cookies"
+import { computed } from "vue"
 import { pinia } from "@/pinia"
 import { resetRouter } from "@/router"
 import { routerConfig } from "@/router/config"
@@ -13,6 +14,10 @@ export const useUserStore = defineStore("user", () => {
 
   const username = ref<string>("")
 
+  const department = ref<string>("")
+
+  const loginTime = ref<string>("")
+
   const tagsViewStore = useTagsViewStore()
 
   const settingsStore = useSettingsStore()
@@ -25,10 +30,21 @@ export const useUserStore = defineStore("user", () => {
 
   // 获取用户详情
   const getInfo = async () => {
-    const { data } = await getCurrentUserApi()
+    const { data } = await getProfileApi()
     username.value = data.username
+    department.value = data.department
+    loginTime.value = data.loginTime
+    // 兼容后端返回 roles 或 role 字段，且可能为 string 或 string[]
+    const source = data as unknown as { roles?: string | string[], role?: string | string[] }
+    const rawRoles = source.roles ?? source.role
+    const roleArray = Array.isArray(rawRoles)
+      ? rawRoles
+      : rawRoles
+        ? [rawRoles]
+        : []
+    const normalizedRoles = roleArray.map(role => role.toLowerCase())
     // 验证返回的 roles 是否为一个非空数组，否则塞入一个没有任何作用的默认角色，防止路由守卫逻辑进入无限循环
-    roles.value = data.roles?.length > 0 ? data.roles : routerConfig.defaultRoles
+    roles.value = normalizedRoles.length > 0 ? normalizedRoles : routerConfig.defaultRoles
   }
 
   // 模拟角色变化
@@ -45,8 +61,11 @@ export const useUserStore = defineStore("user", () => {
     removeToken()
     token.value = ""
     roles.value = []
+    department.value = ""
+    loginTime.value = ""
     resetRouter()
     resetTagsView()
+    location.reload()
   }
 
   // 重置 Token
@@ -54,6 +73,8 @@ export const useUserStore = defineStore("user", () => {
     removeToken()
     token.value = ""
     roles.value = []
+    department.value = ""
+    loginTime.value = ""
   }
 
   // 重置 Visited Views 和 Cached Views
@@ -64,7 +85,24 @@ export const useUserStore = defineStore("user", () => {
     }
   }
 
-  return { token, roles, username, setToken, getInfo, changeRoles, logout, resetToken }
+  const isSuperAdmin = computed(() => roles.value.includes("superadmin"))
+
+  const isAdminOrHigher = computed(() => roles.value.some(role => ["admin", "superadmin"].includes(role)))
+
+  return {
+    token,
+    roles,
+    username,
+    department,
+    loginTime,
+    isSuperAdmin,
+    isAdminOrHigher,
+    setToken,
+    getInfo,
+    changeRoles,
+    logout,
+    resetToken
+  }
 })
 
 /**

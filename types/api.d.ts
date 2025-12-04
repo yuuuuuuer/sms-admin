@@ -1,6 +1,11 @@
-/** 所有 api 接口的响应数据都应该准守该格式 */
-interface ApiResponseData<T> {
+interface ApiResponseData<T = unknown> {
   code: number
-  data: T
-  message: string
+  data?: T
+  message?: string
+  msg?: string
+}
+
+interface ApiEncryptedData {
+  s: string
+  t: string
 }

@@ -6,6 +6,8 @@ import { flatMultiLevelRoutes } from "@/router/helper"
 
 function hasPermission(roles: string[], route: RouteRecordRaw) {
   const routeRoles = route.meta?.roles
+  // superadmin 拥有所有路由权限
+  if (roles.includes("superadmin")) return true
   return routeRoles ? roles.some(role => routeRoles.includes(role)) : true
 }
 

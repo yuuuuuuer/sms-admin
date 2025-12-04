@@ -1,8 +1,15 @@
-import type { AxiosInstance, AxiosRequestConfig } from "axios"
+import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios"
 import { getToken } from "@@/utils/cache/cookies"
+import { decryptPayload, encryptPayload, isEncryptedPayload } from "@@/utils/crypto/aes"
 import axios from "axios"
 import { get, merge } from "lodash-es"
 import { useUserStore } from "@/pinia/stores/user"
+
+interface RequestMeta {
+  encrypted?: boolean
+}
+
+type RequestConfig = AxiosRequestConfig & { meta?: RequestMeta }
 
 /** 退出登录并强制刷新页面（会重定向到登录页） */
 function logout() {
@@ -23,32 +30,7 @@ function createInstance() {
   )
   // 响应拦截器（可根据具体业务作出相应的调整）
   instance.interceptors.response.use(
-    (response) => {
-      // apiData 是 api 返回的数据
-      const apiData = response.data
-      // 二进制数据则直接返回
-      const responseType = response.config.responseType
-      if (responseType === "blob" || responseType === "arraybuffer") return apiData
-      // 这个 code 是和后端约定的业务 code
-      const code = apiData.code
-      // 如果没有 code, 代表这不是项目后端开发的 api
-      if (code === undefined) {
-        ElMessage.error("非本系统的接口")
-        return Promise.reject(new Error("非本系统的接口"))
-      }
-      switch (code) {
-        case 0:
-          // 本系统采用 code === 0 来表示没有业务错误
-          return apiData
-        case 401:
-          // Token 过期时
-          return logout()
-        default:
-          // 不是正确的 code
-          ElMessage.error(apiData.message || "Error")
-          return Promise.reject(new Error("Error"))
-      }
-    },
+    response => handleBusinessResponse(response),
     (error) => {
       // status 是 HTTP 状态码
       const status = get(error, "response.status")
@@ -99,10 +81,10 @@ function createInstance() {
 
 /** 创建请求方法 */
 function createRequest(instance: AxiosInstance) {
-  return <T>(config: AxiosRequestConfig): Promise<T> => {
+  return <T>(config: RequestConfig): Promise<T> => {
     const token = getToken()
     // 默认配置
-    const defaultConfig: AxiosRequestConfig = {
+    const defaultConfig: RequestConfig = {
       // 接口地址
       baseURL: import.meta.env.VITE_BASE_URL,
       // 请求头
@@ -111,17 +93,44 @@ function createRequest(instance: AxiosInstance) {
         "Authorization": token ? `Bearer ${token}` : undefined,
         "Content-Type": "application/json"
       },
-      // 请求体
-      data: {},
       // 请求超时
       timeout: 5000,
       // 跨域请求时是否携带 Cookies
       withCredentials: false
     }
     // 将默认配置 defaultConfig 和传入的自定义配置 config 进行合并成为 mergeConfig
-    const mergeConfig = merge(defaultConfig, config)
+    const mergeConfig = merge({}, defaultConfig, config) as RequestConfig
+    if (mergeConfig.meta?.encrypted && mergeConfig.data) {
+      mergeConfig.data = encryptPayload(mergeConfig.data)
+    }
     return instance(mergeConfig)
   }
+}
+
+function handleBusinessResponse(response: AxiosResponse) {
+  const responseType = response.config.responseType
+  if (responseType === "blob" || responseType === "arraybuffer") return response.data
+  let payload = response.data
+  if (isEncryptedPayload(payload)) {
+    payload = decryptPayload(payload)
+  }
+  if (payload?.msg && isEncryptedPayload(payload.msg)) {
+    payload.msg = decryptPayload(payload.msg)
+  }
+  const code = payload?.code
+  if (code === 401) {
+    return logout()
+  }
+  if (code === undefined) {
+    ElMessage.error("非本系统的接口")
+    return Promise.reject(new Error("非本系统的接口"))
+  }
+  const successCodes = [0, 200]
+  if (successCodes.includes(code)) {
+    return payload
+  }
+  ElMessage.error(payload.message || payload.msg || "业务请求失败")
+  return Promise.reject(new Error(payload.message || payload.msg || "业务请求失败"))
 }
 
 /** 用于请求的实例 */
