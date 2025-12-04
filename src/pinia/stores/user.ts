@@ -31,9 +31,16 @@ export const useUserStore = defineStore("user", () => {
   // 获取用户详情
   const getInfo = async () => {
     const { data } = await getProfileApi()
-    username.value = data.username
-    department.value = data.department
-    loginTime.value = data.loginTime
+    if (!data) {
+      username.value = ""
+      department.value = ""
+      loginTime.value = ""
+      roles.value = routerConfig.defaultRoles
+      return
+    }
+    username.value = data.username ?? ""
+    department.value = data.department ?? ""
+    loginTime.value = data.loginTime ?? ""
     // 兼容后端返回 roles 或 role 字段，且可能为 string 或 string[]
     const source = data as unknown as { roles?: string | string[], role?: string | string[] }
     const rawRoles = source.roles ?? source.role

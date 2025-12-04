@@ -20,6 +20,10 @@ const summary = reactive({
 })
 
 const searchRange = ref<[string, string]>(getDefaultRange())
+const datePickerDefaultTime: [Date, Date] = [
+  new Date(2000, 0, 1, 0, 0, 0),
+  new Date(2000, 0, 1, 23, 59, 59)
+]
 
 function getDefaultRange(): [string, string] {
   const end = dayjs()
@@ -65,12 +69,12 @@ async function fetchLogs() {
       pageNumber: pagination.pageNumber,
       pageSize: pagination.pageSize
     })
-    logList.value = data.list
-    pagination.total = data.total
-    summary.sendTotal = data.summary.sendTotal
-    summary.captureNumber = data.summary.captureNumber
-    summary.sendSuccess = data.summary.sendSuccess
-    summary.userTotal = data.summary.userTotal
+    logList.value = data?.list ?? []
+    pagination.total = data?.total ?? 0
+    summary.sendTotal = data?.summary?.sendTotal ?? 0
+    summary.captureNumber = data?.summary?.captureNumber ?? 0
+    summary.sendSuccess = data?.summary?.sendSuccess ?? 0
+    summary.userTotal = data?.summary?.userTotal ?? 0
   } finally {
     tableLoading.value = false
   }
@@ -115,7 +119,7 @@ onMounted(() => {
             start-placeholder="开始时间"
             end-placeholder="结束时间"
             value-format="YYYY-MM-DD HH:mm:ss"
-            :default-time="['00:00:00', '23:59:59']"
+            :default-time="datePickerDefaultTime"
           />
         </el-form-item>
         <el-form-item>

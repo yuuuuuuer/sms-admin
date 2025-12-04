@@ -78,15 +78,15 @@ async function fetchSummary() {
   loading.value = true
   try {
     const { data } = await getDashboardSummaryApi()
-    summary.userTotal = data.userTotal
-    summary.smsConfigTotal = data.smsConfigTotal
-    summary.logTotal = data.logTotal
-    summary.lastLoginTime = data.lastLoginTime
-    summary.username = data.username
-    summary.role = data.role
+    summary.userTotal = data?.userTotal ?? 0
+    summary.smsConfigTotal = data?.smsConfigTotal ?? 0
+    summary.logTotal = data?.logTotal ?? 0
+    summary.lastLoginTime = data?.lastLoginTime ?? ""
+    summary.username = data?.username ?? ""
+    summary.role = data?.role ?? ""
     if (userStore.isSuperAdmin) {
       const deptRes = await getDeptSummaryApi()
-      summary.deptTotal = deptRes.data.deptTotal
+      summary.deptTotal = deptRes.data?.deptTotal ?? 0
     }
   } finally {
     loading.value = false

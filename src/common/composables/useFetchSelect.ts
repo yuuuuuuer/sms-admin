@@ -30,7 +30,9 @@ export function useFetchSelect(props: FetchSelectProps) {
     loading.value = true
     options.value = []
     api().then((res) => {
-      options.value = res.data
+      options.value = res.data ?? []
+    }).catch(() => {
+      options.value = []
     }).finally(() => {
       loading.value = false
     })

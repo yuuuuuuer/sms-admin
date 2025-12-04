@@ -93,6 +93,10 @@ const roleLabelMap: Record<UserRole, string> = {
   user: "普通用户"
 }
 
+function getRoleLabel(role: string) {
+  return roleLabelMap[role as UserRole] ?? role
+}
+
 const showAdminActions = computed(() => userStore.isAdminOrHigher)
 const showSuperAdminActions = computed(() => userStore.isSuperAdmin)
 
@@ -108,9 +112,10 @@ function formatOnlineMinutes(minutes?: number) {
 async function fetchDeptOptions() {
   if (!userStore.isSuperAdmin) return
   const res = await getDeptListApi()
-  deptOptions.value = res.data
-  if (!createForm.department && res.data.length) {
-    createForm.department = res.data[0].name
+  const list = res.data ?? []
+  deptOptions.value = list
+  if (!createForm.department && list.length) {
+    createForm.department = list[0].name
   }
 }
 
@@ -121,8 +126,8 @@ async function fetchUserList() {
       pageNumber: pagination.pageNumber,
       pageSize: pagination.pageSize
     })
-    userList.value = data.list
-    pagination.total = data.total
+    userList.value = data?.list ?? []
+    pagination.total = data?.total ?? 0
   } finally {
     tableLoading.value = false
   }
@@ -278,7 +283,7 @@ onMounted(async () => {
         </el-table-column>
         <el-table-column prop="role" label="权限" min-width="120">
           <template #default="{ row }">
-            <el-tag>{{ roleLabelMap[row.role] || row.role }}</el-tag>
+            <el-tag>{{ getRoleLabel(row.role) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="snType" label="状态" width="120">

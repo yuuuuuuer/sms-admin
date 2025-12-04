@@ -64,8 +64,8 @@ async function fetchSmsList() {
       pageNumber: pagination.pageNumber,
       pageSize: pagination.pageSize
     })
-    smsList.value = data.list
-    pagination.total = data.total
+    smsList.value = data?.list ?? []
+    pagination.total = data?.total ?? 0
   } finally {
     tableLoading.value = false
   }
@@ -76,7 +76,7 @@ async function fetchUserOptions() {
     pageNumber: 1,
     pageSize: 500
   })
-  userOptions.value = data.list
+  userOptions.value = data?.list ?? []
 }
 
 function handlePageChange(page: number) {
