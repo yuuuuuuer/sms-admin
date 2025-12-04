@@ -27,6 +27,9 @@ interface DeptForm {
 
 const userStore = useUserStore()
 
+const NEW_DEPT_VALUE = "__NEW_DEPT__"
+const lastCreateDept = ref<string>("")
+
 const tableLoading = ref(false)
 const userList = ref<UserListItem[]>([])
 
@@ -39,6 +42,8 @@ const pagination = reactive({
 const deptOptions = ref<DeptItem[]>([])
 
 const createDialogVisible = ref(false)
+const createDeptDialogVisible = ref(false)
+const newDeptName = ref("")
 const createFormRef = useTemplateRef<FormInstance>("createFormRef")
 const createForm = reactive<CreateForm>({
   username: "",
@@ -153,6 +158,46 @@ function openCreateDialog() {
     role: "user" as UserRole,
     snType: 1 as 0 | 1
   })
+  lastCreateDept.value = createForm.department
+}
+
+function handleCreateDeptChange(value: string) {
+  if (value !== NEW_DEPT_VALUE) {
+    lastCreateDept.value = value
+    return
+  }
+
+  // 选择「新建部门」，还原为上一次有效部门并打开新建弹窗
+  createForm.department = lastCreateDept.value
+  newDeptName.value = ""
+  createDeptDialogVisible.value = true
+}
+
+function handleCreateDeptCancel() {
+  createDeptDialogVisible.value = false
+  newDeptName.value = ""
+}
+
+function handleCreateDeptConfirm() {
+  const name = newDeptName.value.trim()
+  if (!name) {
+    ElMessage.warning("请输入新部门名称")
+    return
+  }
+
+  const exists = deptOptions.value.some(item => item.name === name)
+  if (!exists) {
+    deptOptions.value.push({
+      // 仅前端使用的临时 ID，后端不依赖该字段
+      id: Date.now(),
+      name
+    } as DeptItem)
+  }
+
+  createForm.department = name
+  lastCreateDept.value = name
+  createDeptDialogVisible.value = false
+  newDeptName.value = ""
 }
 
 function submitCreate() {
@@ -340,13 +385,25 @@ onMounted(async () => {
           <el-input v-model.trim="createForm.password" placeholder="请输入密码" type="password" show-password />
         </el-form-item>
         <el-form-item label="部门" prop="department">
-          <el-select v-model="createForm.department" placeholder="请选择部门">
+          <el-select
+            v-model="createForm.department"
+            placeholder="请选择部门"
+            @change="handleCreateDeptChange"
+          >
             <el-option
               v-for="dept in deptOptions"
               :key="dept.id"
               :label="dept.name"
               :value="dept.name"
             />
+            <el-option
+              v-if="showSuperAdminActions"
+              :key="NEW_DEPT_VALUE"
+              label="新建部门"
+              :value="NEW_DEPT_VALUE"
+            >
+              <span style="color: var(--el-color-primary)">+ 新建部门</span>
+            </el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="权限" prop="role">
@@ -376,6 +433,31 @@ onMounted(async () => {
           取消
         </el-button>
         <el-button type="primary" @click="submitCreate">
+          确定
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 新建部门（仅前端选项） -->
+    <el-dialog
+      v-model="createDeptDialogVisible"
+      title="新建部门"
+      width="400px"
+      destroy-on-close
+    >
+      <el-form label-width="90px">
+        <el-form-item label="部门名称">
+          <el-input
+            v-model.trim="newDeptName"
+            placeholder="请输入新部门名称"
+          />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="handleCreateDeptCancel">
+          取消
+        </el-button>
+        <el-button type="primary" @click="handleCreateDeptConfirm">
           确定
         </el-button>
       </template>
