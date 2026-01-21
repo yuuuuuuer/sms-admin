@@ -210,6 +210,7 @@ unplugin-svg-component 插件提供的能力！
 ## 将 SVG 文件导入为 Vue 组件
 vite-svg-loader 插件提供的的能力！
 比如 404 页面：
+```vue
 <script lang="ts" setup>
 import Layout from "./components/Layout.vue"
 import Svg404 from "./images/404.svg?component" // vite-svg-loader 插件的功能
@@ -220,13 +221,6 @@ import Svg404 from "./images/404.svg?component" // vite-svg-loader 插件的功�
     <Svg404 />
   </Layout>
 </template>
+```
 
-这种方式一般用来处理将 svg 当做图片展示的场景，比如 404 页面的大图 ##下载 Svg Icon
-推荐 iconfont ##自动按需导入
-基于 unplugin-vue-components 和 unplugin-auto-import 实现的组件和 API 自动按需导入
-如果我们要使用 Element Plus 的按钮组件，例如 el-button，不用再手动通过 import 语句导入组件和样式，而是可以直接使用：
-<el-button type="primary">Primary</van-button>
-如果我们要使用 Vue 的 ref API，也不用再手动导入，直接使用即可：
-const loading = ref(false)
-所有已经内置的自动按需导入：vue、vue-router、pinia、element-plus 相关的 API 和组件，它们四个会自动按需导入，切记不要手动 import ##自动生成类型
-types/auto 目录下为自动生成的类型，无需手动管理，切记不要手动修改
+这种方式一般用来处理将 svg 当做图片展示的场景，比如 404 页面的大图
